@@ -1,0 +1,96 @@
+#!/bin/bash
+
+set -e
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+# see https://devcenter.heroku.com/articles/buildpack-api - during compilation
+# app env vars exist only as files within the ENV_VAR directory
+if [[ -s "$ENV_DIR/MAXMIND_LICENSE_KEY" ]] then
+    echo "-----> MAXMIND_LICENSE_KEY set - proceeding with installation"
+    MAXMIND_LICENSE_KEY=$(cat $ENV_DIR/MAXMIND_LICENSE_KEY)
+else
+    echo "-----> You need to set the environment variable MAXMIND_LICENSE_KEY to be your accounts license key."
+    exit 1
+fi
+
+if [ ! -f "$ENV_DIR/GEOLITE_DB_NAME" ]; then
+  echo "-----> You need to set the environment variable GEOLITE_DB_NAME to either City or Country."
+
+  exit 1
+fi
+
+LIBMAXMINDDB_VERSION=1.4.2
+GEOLITE_DB_NAME=`cat $ENV_DIR/MAXMIND_DB_NAME`
+GEOLITE_FULL_DB_NAME="GeoLite2-$GEOLITE_DB_NAME"
+GEOLITE2_DB_FILENAME="$GEOLITE_DB_NAME.mmdb"
+GEOLITE2_TARBALL_FILENAME="$GEOLITE_DB_NAME.tar.gz"
+
+BUILD_DIST_DIR="$BUILD_DIR/.geoip"
+BUILD_DIST_SHARE_DIR="$BUILD_DIST_DIR/share"
+
+GEOIP_CACHE_DIR="$CACHE_DIR/geoip"
+LIBMAXMINDDB_CACHE_DIR="$GEOIP_CACHE_DIR/libmaxminddb"
+LIBMAXMINDDB_CACHE_DIST_DIR="$GEOIP_CACHE_DIR/libmaxminddb/dist"
+LIBMAXMINDDB_CACHE_VERSION_FILE="$LIBMAXMINDDB_CACHE_DIR/libmaxminddb-version"
+
+echo "-----> Installing GeoLite2 data and libmaxminddb from https://www.maxmind.com"
+
+mkdir -p "$BUILD_DIST_DIR"
+mkdir -p "$BUILD_DIST_SHARE_DIR"
+mkdir -p "$GEOIP_CACHE_DIR"
+mkdir -p "$LIBMAXMINDDB_CACHE_DIST_DIR"
+
+echo "       Downloading $GEOLITE_FULL_DB_NAME data"
+
+# see https://dev.maxmind.com/geoip/geoipupdate/ (Direct Downloads version)
+url = "https://download.maxmind.com/app/geoip_download?edition_id=$GEOLITE_FULL_DB_NAME&license_key=$MAXMIND_LICENSE_KEY&suffix=tar.gz"
+wget --quiet --output-document "$GEOIP_CACHE_DIR/$GEOLITE2_CITY_TARBALL_FILENAME" url
+
+echo "       Unzipping $GEOLITE_FULL_DB_NAME data"
+
+tar -xvf "$GEOIP_CACHE_DIR/$GEOLITE2_TARBALL_FILENAME" --directory "$BUILD_DIST_SHARE_DIR" --no-anchored --strip-components=1 "$GEOLITE2_DB_FILENAME"
+
+if [ -f "$LIBMAXMINDDB_CACHE_VERSION_FILE" ] && grep -Fxq "$LIBMAXMINDDB_VERSION" "$LIBMAXMINDDB_CACHE_VERSION_FILE"; then
+    echo "       Using cached build of libmaxminddb-$LIBMAXMINDDB_VERSION"
+else
+    WORK_DIR=$(mktemp -d)
+    DIST_DIR="$WORK_DIR/dist"
+    TAR_FILE_PATH="$WORK_DIR/libmaxminddb.tar.gz"
+
+    mkdir -p "$DIST_DIR"
+
+    echo "       Downloading libmaxminddb-$LIBMAXMINDDB_VERSION"
+
+    wget -q -P "$WORK_DIR" "https://github.com/maxmind/libmaxminddb/releases/download/$LIBMAXMINDDB_VERSION/libmaxminddb-$LIBMAXMINDDB_VERSION.tar.gz"
+
+    tar -xf "$WORK_DIR/libmaxminddb-$LIBMAXMINDDB_VERSION.tar.gz" --directory "$WORK_DIR" --strip-components=1
+
+    echo "       Building libmaxminddb-$LIBMAXMINDDB_VERSION"
+
+    pushd "$WORK_DIR" > /dev/null
+    ./configure --quiet --prefix "$LIBMAXMINDDB_CACHE_DIST_DIR"
+    make >/dev/null || make
+    make --silent check
+    make --silent install
+    popd
+
+    rm -r "$WORK_DIR"
+
+    echo "$LIBMAXMINDDB_VERSION" > "$LIBMAXMINDDB_CACHE_VERSION_FILE"
+fi
+
+cp -r "$LIBMAXMINDDB_CACHE_DIST_DIR/." "$BUILD_DIST_DIR"
+
+echo "       Set environment variable GEOIP_GEOLITE2_DB"
+
+mkdir -p $BUILD_DIR/.profile.d
+cat <<EOF >$BUILD_DIR/.profile.d/geoip.sh
+export GEOIP_GEOLITE2_DB="\$HOME/.geoip/share/$GEOLITE2_DB_FILENAME"
+export LD_LIBRARY_PATH="\$HOME/.geoip/lib:\$LD_LIBRARY_PATH"
+export PATH="\$HOME/.geoip/bin:\$PATH"
+EOF
+
+cp $BUILD_DIR/.profile.d/geoip.sh ./export
