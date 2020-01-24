@@ -1,6 +1,6 @@
 # Heroku Buildpack: GeoLite2 GeoIP data
 
-[![Build Status](https://travis-ci.org/danstiner/heroku-buildpack-geoip-geolite2.svg?branch=master)](https://travis-ci.org/danstiner/heroku-buildpack-geoip-geolite2)
+[![Build Status](https://travis-ci.org/pmor/heroku-buildpack-geoip-geolite2.svg?branch=master)](https://travis-ci.org/pmor/heroku-buildpack-geoip-geolite2)
 
 This is an unofficial [Heroku buildpack](https://devcenter.heroku.com/articles/buildpacks)
 that installs the latest GeoLite2 City and Country free IP geolocation databases from
@@ -21,7 +21,7 @@ From Jan-2020 users need a Maxmind account, and a valid license key. This buildp
 ### Heroku
 
 ```sh
-$ heroku buildpacks:add https://github.com/danstiner/heroku-buildpack-geoip-geolite2.git
+$ heroku buildpacks:add https://github.com/pmor/heroku-buildpack-geoip-geolite2.git
 ```
 
 Then deploy and start using the database.
