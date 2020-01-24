@@ -18,17 +18,34 @@ The GeoLite2 databases are distributed under the Creative Commons Attribution-Sh
 
 From Jan-2020 users need a Maxmind account, and a valid license key. This buildpack uses the "direct download" method described in the Maxmind developer documentation (https://dev.maxmind.com/geoip/geoipupdate/#Direct_Downloads).
 
+### Configuration options
+
+This buildpack requires setting up two environment variables:
+
+  - ``MAXMIND_LICENSE_KEY`` with your Maxmind licence key
+  - ``GEOLITE_DB_NAME`` with either ``City`` or ``Country`` to select with Geolite database you wish to use.
+
+Additionally, you may want to skip installation of `libmaxminddb`, i.e. if you're using the [maxminddb gem](https://github.com/yhirose/maxminddb). In that case, set ``LIBMAXMINDDB_INSTALL`` to `false`. (If ``LIBMAXMINDDB_INSTALL`` is not present, then `libmaxminddb` *will* be installed)
+
 ### Heroku
 
 ```sh
 $ heroku buildpacks:add https://github.com/pmor/heroku-buildpack-geoip-geolite2.git
+$ heroku config:set MAXMIND_LICENSE_KEY=<your-licence-key>
+$ heroku config:set GEOLITE_DB_NAME=<'City' or 'Country'>
+# and optionally
+$ heroku config:set LIBMAXMINDDB_INSTALL='false'
 ```
 
 Then deploy and start using the database.
 
 ## Credits
 
+&copy; 2020 Pedro Moreira
+
 Forked from https://github.com/danstiner/heroku-buildpack-geoip-geolite2 and integrates
 ideas from https://github.com/voomflights/heroku-buildpack-maxmind-geolite2
 
 This product includes GeoLite2 data created by MaxMind, available from http://www.maxmind.com.
+
+Released under the MIT License.
