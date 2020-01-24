@@ -8,7 +8,7 @@ ENV_DIR=$3
 
 # see https://devcenter.heroku.com/articles/buildpack-api - during compilation
 # app env vars exist only as files within the ENV_VAR directory
-if [[ -s "$ENV_DIR/MAXMIND_LICENSE_KEY" ]] then
+if [[ -s "$ENV_DIR/MAXMIND_LICENSE_KEY" ]]; then
     echo "-----> MAXMIND_LICENSE_KEY set - proceeding with installation"
     MAXMIND_LICENSE_KEY=$(cat $ENV_DIR/MAXMIND_LICENSE_KEY)
 else
