@@ -4,7 +4,7 @@
 
 testDetect()
 {
-    capture ${BUILDPACK_HOME}/bin/detect ${BUILD_DIR}
-    assertCapturedSuccess
-    assertAppDetected "GeoLite2"
+  capture ${BUILDPACK_HOME}/bin/detect ${BUILD_DIR}
+  assertCapturedSuccess
+  assertAppDetected "GeoLite2"
 }
