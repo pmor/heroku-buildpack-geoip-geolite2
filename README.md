@@ -25,7 +25,15 @@ This buildpack requires setting up two environment variables:
   - ``MAXMIND_LICENSE_KEY`` with your Maxmind licence key
   - ``GEOLITE_DB_NAME`` with either ``City`` or ``Country`` to select with Geolite database you wish to use.
 
-Additionally, you may want to skip installation of `libmaxminddb`, i.e. if you're using the [maxminddb gem](https://github.com/yhirose/maxminddb). In that case, set ``LIBMAXMINDDB_INSTALL`` to `false`. (If ``LIBMAXMINDDB_INSTALL`` is not present, then `libmaxminddb` *will* be installed)
+#### libmaxminddb version
+
+By default, this buildpack installs the latest version of `libmaxminddb` and will be kept updated as new versions are released.
+
+You may set ``LIBMAXMINDDB_VERSION`` to the desired version if you want to lock a specific version. Please note that the buildpack will output a warning if you're not running the latest release of `libmaxminddb`.
+
+#### Skip installation of libmaxminxdb
+
+You may want to skip installation of `libmaxminddb`, i.e. if you're using the [maxminddb gem](https://github.com/yhirose/maxminddb). In that case, set ``LIBMAXMINDDB_INSTALL`` to `false`. (If ``LIBMAXMINDDB_INSTALL`` is not present, then `libmaxminddb` *will* be installed)
 
 ### Heroku
 
@@ -33,11 +41,14 @@ Additionally, you may want to skip installation of `libmaxminddb`, i.e. if you'r
 $ heroku buildpacks:add https://github.com/pmor/heroku-buildpack-geoip-geolite2.git
 $ heroku config:set MAXMIND_LICENSE_KEY=<your-licence-key>
 $ heroku config:set GEOLITE_DB_NAME=<'City' or 'Country'>
-# and optionally
+# optionally disable libmaxminddb installation
 $ heroku config:set LIBMAXMINDDB_INSTALL='false'
+# optionally set libmaxminddb version for installation
+# the latest version will be installed if not set
+$ heroku config:set LIBMAXMINDDB_VERSION='1.4.2'
 ```
 
-Then deploy and start using the database.
+The buildpack sets the variable ``GEOIP_DB_PATH`` with the path of the chosen Geolite2 database.
 
 ## Credits
 

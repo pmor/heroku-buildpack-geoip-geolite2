@@ -36,6 +36,23 @@ testSuccessCountry()
   assertCapturedSuccess
 }
 
+testSuccessWithLibInstall() {
+  env 'MAXMIND_LICENSE_KEY' 'gAZR7U6DdeZa70y9'
+  env 'GEOLITE_DB_NAME' 'City'
+  env 'LIBMAXMINDDB_INSTALL' 'true'
+  env 'LIBMAXMINDDB_VERSION' '1.4.2'
+  compile
+  assertCapturedSuccess
+}
+
+testSuccessWithLibLatestInstall() {
+  env 'MAXMIND_LICENSE_KEY' 'gAZR7U6DdeZa70y9'
+  env 'GEOLITE_DB_NAME' 'City'
+  env 'LIBMAXMINDDB_INSTALL' 'true'
+  compile
+  assertCapturedSuccess
+}
+
 env() {
   local var="${1}"
   local val="${2}"

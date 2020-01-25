@@ -2,5 +2,5 @@
 
 BUILD_DIR=$1
 
-echo "GeoLite2"
+echo "GeoLite2 DB Buildpack"
 exit 0
