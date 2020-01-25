@@ -49,6 +49,7 @@ testSuccessWithLibLatestInstall() {
   env 'MAXMIND_LICENSE_KEY' 'gAZR7U6DdeZa70y9'
   env 'GEOLITE_DB_NAME' 'City'
   env 'LIBMAXMINDDB_INSTALL' 'true'
+  env_unset 'LIBMAXMINDDB_VERSION'
   compile
   assertCapturedSuccess
 }
